@@ -57,4 +57,15 @@ public interface BoundednessTrait extends RelTrait {
           return trait == this;
         }
       };
+
+  static BoundednessTrait of(PCollection.IsBounded isBounded) {
+    switch (isBounded) {
+      case BOUNDED:
+        return BoundednessTrait.BOUNDED;
+      case UNBOUNDED:
+        return BoundednessTrait.UNBOUNDED;
+      default:
+        throw new IllegalArgumentException(String.format("Unknown boundedness: %s", isBounded));
+    }
+  }
 }

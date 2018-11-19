@@ -17,6 +17,7 @@
  */
 package org.apache.beam.sdk.extensions.sql;
 
+import org.apache.beam.sdk.extensions.sql.impl.rel.BoundednessTrait;
 import org.apache.beam.sdk.schemas.Schema;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
@@ -27,6 +28,8 @@ import org.apache.beam.sdk.values.Row;
 public interface BeamSqlTable {
   /** create a {@code PCollection<Row>} from source. */
   PCollection<Row> buildIOReader(PBegin begin);
+
+  BoundednessTrait isBounded();
 
   /** create a {@code IO.write()} instance to write to target. */
   POutput buildIOWriter(PCollection<Row> input);
