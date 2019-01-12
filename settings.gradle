@@ -215,6 +215,8 @@ include "beam-vendor-sdks-java-extensions-protobuf"
 project(":beam-vendor-sdks-java-extensions-protobuf").dir = file("vendor/sdks-java-extensions-protobuf")
 include "beam-vendor-guava-20_0"
 project(":beam-vendor-guava-20_0").dir = file("vendor/guava-20_0")
+include "beam-vendor-calcite-1_18_0"
+project(":beam-vendor-calcite-1_18_0").dir = file("vendor/calcite-1_18_0")
 include "beam-website"
 project(":beam-website").dir = file("website")
 include "beam-runners-google-cloud-dataflow-java-legacy-worker"
