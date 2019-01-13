@@ -55,14 +55,11 @@ configurations {
   fmppTemplates
 }
 
-def calcite_version = "1.18.0"
-def avatica_version = "1.12.0"
-
 dependencies {
   javacc "net.java.dev.javacc:javacc:4.0"
   fmppTask "com.googlecode.fmpp-maven-plugin:fmpp-maven-plugin:1.0"
   fmppTask "org.freemarker:freemarker:2.3.28"
-  fmppTemplates "org.apache.calcite:calcite-core:$calcite_version"
+  fmppTemplates library.java.vendored_calcite_1_18_0
   compile library.java.guava
   shadow library.java.vendored_calcite_1_18_0
   shadow project(path: ":beam-sdks-java-core", configuration: "shadow")
@@ -96,7 +93,7 @@ task copyFmppTemplatesFromSrc(type: Copy) {
 task copyFmppTemplatesFromCalciteCore(type: Copy) {
   dependsOn configurations.fmppTemplates
   File calciteCoreJar = files(configurations.fmppTemplates.files).filter {
-    it.name.startsWith("calcite-core")
+    it.name.startsWith("beam-vendored-calcite")
   }.singleFile
   from zipTree(calciteCoreJar)
   include "**/Parser.jj"
