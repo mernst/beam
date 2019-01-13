@@ -93,7 +93,7 @@ task copyFmppTemplatesFromSrc(type: Copy) {
 task copyFmppTemplatesFromCalciteCore(type: Copy) {
   dependsOn configurations.fmppTemplates
   File calciteCoreJar = files(configurations.fmppTemplates.files).filter {
-    it.name.startsWith("beam-vendored-calcite")
+    it.name.startsWith("beam-vendor-calcite")
   }.singleFile
   from zipTree(calciteCoreJar)
   include "**/Parser.jj"

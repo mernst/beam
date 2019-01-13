@@ -53,17 +53,17 @@ import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.PCollectionView;
 import org.apache.beam.sdk.values.Row;
 import org.apache.beam.sdk.values.WindowingStrategy;
-import org.apache.calcite.plan.RelOptCluster;
-import org.apache.calcite.plan.RelTraitSet;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.core.CorrelationId;
-import org.apache.calcite.rel.core.Join;
-import org.apache.calcite.rel.core.JoinRelType;
-import org.apache.calcite.rex.RexCall;
-import org.apache.calcite.rex.RexInputRef;
-import org.apache.calcite.rex.RexLiteral;
-import org.apache.calcite.rex.RexNode;
-import org.apache.calcite.util.Pair;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.plan.RelOptCluster;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.plan.RelTraitSet;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rel.RelNode;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rel.core.CorrelationId;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rel.core.Join;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rel.core.JoinRelType;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rex.RexCall;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rex.RexInputRef;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rex.RexLiteral;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rex.RexNode;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.util.Pair;
 
 /**
  * {@code BeamRelNode} to replace a {@code Join} node.

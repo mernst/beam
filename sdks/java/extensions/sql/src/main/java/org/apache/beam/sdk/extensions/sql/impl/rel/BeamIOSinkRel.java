@@ -27,15 +27,15 @@ import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.Row;
-import org.apache.calcite.plan.RelOptCluster;
-import org.apache.calcite.plan.RelOptPlanner;
-import org.apache.calcite.plan.RelOptTable;
-import org.apache.calcite.plan.RelTraitSet;
-import org.apache.calcite.prepare.Prepare;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.core.TableModify;
-import org.apache.calcite.rex.RexNode;
-import org.apache.calcite.sql2rel.RelStructuredTypeFlattener;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.plan.RelOptCluster;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.plan.RelOptPlanner;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.plan.RelOptTable;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.plan.RelTraitSet;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.prepare.Prepare;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rel.RelNode;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rel.core.TableModify;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rex.RexNode;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.sql2rel.RelStructuredTypeFlattener;
 
 /** BeamRelNode to replace a {@code TableModify} node. */
 public class BeamIOSinkRel extends TableModify

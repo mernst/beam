@@ -19,11 +19,11 @@ package org.apache.beam.sdk.extensions.sql.impl.rule;
 
 import org.apache.beam.sdk.extensions.sql.impl.rel.BeamJoinRel;
 import org.apache.beam.sdk.extensions.sql.impl.rel.BeamLogicalConvention;
-import org.apache.calcite.plan.Convention;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.convert.ConverterRule;
-import org.apache.calcite.rel.core.Join;
-import org.apache.calcite.rel.logical.LogicalJoin;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.plan.Convention;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rel.RelNode;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rel.convert.ConverterRule;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rel.core.Join;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rel.logical.LogicalJoin;
 
 /** {@code ConverterRule} to replace {@code Join} with {@code BeamJoinRel}. */
 public class BeamJoinRule extends ConverterRule {

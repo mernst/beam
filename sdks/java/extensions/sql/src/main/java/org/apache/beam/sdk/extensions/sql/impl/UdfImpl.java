@@ -18,9 +18,9 @@
 package org.apache.beam.sdk.extensions.sql.impl;
 
 import java.lang.reflect.Method;
-import org.apache.calcite.schema.Function;
-import org.apache.calcite.schema.TranslatableTable;
-import org.apache.calcite.schema.impl.TableMacroImpl;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.schema.Function;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.schema.TranslatableTable;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.schema.impl.TableMacroImpl;
 
 /** Beam-customized facade behind {@link Function} to address BEAM-5921. */
 class UdfImpl {

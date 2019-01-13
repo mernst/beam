@@ -22,9 +22,9 @@ import java.util.ServiceLoader;
 import org.apache.beam.sdk.extensions.sql.meta.provider.TableProvider;
 import org.apache.beam.sdk.extensions.sql.meta.store.InMemoryMetaStore;
 import org.apache.beam.sdk.extensions.sql.meta.store.MetaStore;
-import org.apache.calcite.schema.Schema;
-import org.apache.calcite.schema.SchemaFactory;
-import org.apache.calcite.schema.SchemaPlus;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.schema.Schema;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.schema.SchemaFactory;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.schema.SchemaPlus;
 
 /** Factory that creates a {@link BeamCalciteSchema}. */
 public class BeamCalciteSchemaFactory implements SchemaFactory {

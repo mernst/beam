@@ -26,8 +26,8 @@ import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.Row;
-import org.apache.calcite.plan.volcano.RelSubset;
-import org.apache.calcite.rel.RelNode;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.plan.volcano.RelSubset;
+import org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite.rel.RelNode;
 
 /** Utilities for {@code BeamRelNode}. */
 public class BeamSqlRelUtils {
