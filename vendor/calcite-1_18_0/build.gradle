@@ -25,6 +25,7 @@ version = "0.1"
 
 def calcite_version = "1.18.0"
 def avatica_version = "1.12.0"
+def prefix = "org.apache.beam.vendor.calcite.v1_18_0"
 
 vendorJava(
   dependencies: [
@@ -33,11 +34,24 @@ vendorJava(
     "org.apache.calcite.avatica:avatica-core:$avatica_version",
   ],
   relocations: [
-    "org.apache.calcite": "org.apache.beam.vendor.calcite.v1_18_0.org.apache.calcite",
+    "org.apache.calcite": "${prefix}.org.apache.calcite",
 
     // Calcite has Guava on its API surface
     "com.google.common": "org.apache.beam.vendor.guava.v20_0.com.google.thirdparty",
     "com.google.thirdparty": "org.apache.beam.vendor.guava.v20_0.com.google.thirdparty",
+
+    // Making this self-contained, includes Calcite's dependencies
+    "org.apache.commons": "${prefix}.org.apache.beam",
+    "com.esri": "${prefix}.com.esri",
+      "com.fasterxml": "${prefix}.com.fasterxml",
+      "com.yahoo": "${prefix}.com.yahoo",
+      "com.jayway": "${prefix}.com.jayway",
+      "org.pentaho": "${prefix}.org.pentaho",
+      "org.codehaus": "${prefix}.org.codehaus",
+      "org.slf4j": "${prefix}.org.slf4j",
+      "org.apache.http": "${prefix}.org.apache.http",
+      "org.yaml": "${prefix}.org.yaml",
+      // Protobuf is in here too...
   ],
   groupId: group,
   artifactId: "beam-vendor-calcite-1_18_0",
