@@ -68,6 +68,17 @@ dependencies {
   compile library.java.commons_compress
   compile library.java.commons_lang3
   compile library.java.guava_testlib
+
+  compile "com.diffplug.spotless:spotless-plugin-gradle:3.16.0"
+  compile "com.google.googlejavaformat:google-java-format:1.7"
+  compile "com.diffplug.spotless:spotless-lib:1.16.0"
+  compile "com.diffplug.spotless:spotless-lib-extra:1.16.0"
+
+  shadow "com.diffplug.spotless:spotless-plugin-gradle:3.16.0"
+  shadow "com.google.googlejavaformat:google-java-format:1.7"
+  shadow "com.diffplug.spotless:spotless-lib:1.16.0"
+  shadow "com.diffplug.spotless:spotless-lib-extra:1.16.0"
+
   shadow library.java.jackson_core
   shadow library.java.jackson_annotations
   shadow library.java.jackson_databind
