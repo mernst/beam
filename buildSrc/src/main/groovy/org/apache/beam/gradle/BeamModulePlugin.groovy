@@ -1292,7 +1292,6 @@ class BeamModulePlugin implements Plugin<Project> {
     /** ***********************************************************************************************/
 
     project.ext.applyGroovyNature = {
-      println "Applying groovy nature"
       project.apply plugin: "groovy"
 
       project.apply plugin: "com.diffplug.gradle.spotless"
@@ -1385,7 +1384,6 @@ class BeamModulePlugin implements Plugin<Project> {
     /** ***********************************************************************************************/
 
     project.ext.applyPortabilityNature = {
-      println "applyPortabilityNature with " + (it ? "$it" : "default configuration") + " for project $project.name"
       PortabilityNatureConfiguration configuration = it ? it as PortabilityNatureConfiguration : new PortabilityNatureConfiguration()
 
       project.ext.applyJavaNature(
@@ -1574,7 +1572,6 @@ class BeamModulePlugin implements Plugin<Project> {
             args '-c', ". ${project.ext.envdir}/bin/activate && python ${project.ext.pythonRootDir}/setup.py sdist --formats zip,gztar --dist-dir ${project.buildDir}"
           }
           def collection = project.fileTree("${project.buildDir}"){ include '**/*.tar.gz' exclude '**/apache-beam.tar.gz'}
-          println "sdist archive name: ${collection.singleFile}"
           // we need a fixed name for the artifact
           project.copy { from collection.singleFile; into "${project.buildDir}"; rename { 'apache-beam.tar.gz' } }
         }
