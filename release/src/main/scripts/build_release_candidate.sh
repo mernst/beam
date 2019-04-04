@@ -24,17 +24,80 @@
 
 set -e
 
-LOCAL_CLONE_DIR=build_release_candidate
-LOCAL_JAVA_STAGING_DIR=java_staging_dir
-LOCAL_PYTHON_STAGING_DIR=python_staging_dir
+set -e
+
+function usage() {
+  echo 'Usage: build_release_candidate.sh --version <version> --rc-num <num> --signing-key <gpg id> [--no-source] [--no-java] [--no-python] [--no-docs] [--doc-pr-user <github id>]'
+}
+
+while [[ $# -gt 0 ]] ; do
+  arg="$1"
+
+  case $arg in
+      --debug)
+        set -x
+        shift
+      ;;
+
+      --signing-key)
+        SIGNING_KEY="$1"
+        shift
+        shift
+      ;;
+
+      --no-source)
+        NO_SOURCE=true
+        shift
+      ;;
+
+      --no-java)
+        NO_JAVA=true
+        shift
+      ;;
+
+      --no-python)
+        NO_PYTHON=true
+        shift
+      ;;
+
+      --no-docs)
+        NO_DOCS=true
+        shift
+      ;;
+
+      --doc-pr-user)
+        DOC_PR_USER="$1"
+        shift
+        shift
+      ;;
+
+      --rc-num)
+        RC_NUM="$1"
+        shift
+        shift
+      ;;
+
+      --version)
+        RELEASE_VERSION="$1"
+        shift
+        shift
+      ;;
+
+      *)
+        echo "Unknown argument: $1"
+        usage
+        exit 1
+      ;;
+   esac
+done
+
+
 LOCAL_PYTHON_VIRTUALENV=${LOCAL_PYTHON_STAGING_DIR}/venv
 LOCAL_WEBSITE_UPDATE_DIR=website_update_dir
 LOCAL_PYTHON_DOC=python_doc
 LOCAL_JAVA_DOC=java_doc
 LOCAL_WEBSITE_REPO=beam_website_repo
 
-USER_REMOTE_URL=
-USER_GITHUB_ID=
 GIT_REPO_URL=git@github.com:apache/beam.git
 ROOT_SVN_URL=https://dist.apache.org/repos/dist/dev/beam
 GIT_BEAM_ARCHIVE=https://github.com/apache/beam/archive
@@ -44,100 +107,33 @@ PYTHON_ARTIFACTS_DIR=python
 BEAM_ROOT_DIR=beam
 WEBSITE_ROOT_DIR=beam-site
 
+RC_TAG="v${RELEASE_VERSION}-RC${RC_NUM}"
+CURRENT_COMMIT=$(git rev-parse HEAD)
 
-echo "================Setting Up Environment Variables==========="
-echo "Which release version are you working on: "
-read RELEASE
-RELEASE_BRANCH=release-${RELEASE}
-echo "Which release candidate number(e.g. 1) are you going to create: "
-read RC_NUM
-echo "Please enter your github username(ID): "
-read USER_GITHUB_ID
+echo "============Tagging ${RC_TAG} = $CURRENT_COMMIT and pushing to GitHub==================="
+git tag -a "$RC_TAG" -m "Beam ${RELEASE_VERSION}-${RC_NUM}"
 
-USER_REMOTE_URL=git@github.com:${USER_GITHUB_ID}/beam-site
-
-echo "================Listing all GPG keys================="
-gpg --list-keys --keyid-format LONG --fingerprint --fingerprint
-echo "Please copy the public key which is associated with your Apache account:"
-
-read SIGNING_KEY
-
-echo "================Checking Environment Variables=============="
-echo "beam repo will be cloned into: ${LOCAL_CLONE_DIR}"
-echo "working on release version: ${RELEASE}"
-echo "working on release branch: ${RELEASE_BRANCH}"
-echo "will create release candidate: RC${RC_NUM}"
-echo "Your forked beam-site URL: ${USER_REMOTE_URL}"
-echo "Your signing key: ${SIGNING_KEY}"
-echo "Please review all environment variables and confirm: [y|N]"
-read confirmation
-if [[ $confirmation != "y" ]]; then
-  echo "Please rerun this script and make sure you have the right inputs."
-  exit
-fi
-
-echo "[Current Step]: Build and stage java artifacts"
-echo "Do you want to proceed? [y|N]"
-read confirmation
-if [[ $confirmation = "y" ]]; then
-  echo "============Building and Staging Java Artifacts============="
-  echo "--------Cloning Beam Repo and Checkout Release Branch-------"
-  cd ~
-  if [[ -d ${LOCAL_CLONE_DIR} ]]; then
-    rm -rf ${LOCAL_CLONE_DIR}
-  fi
-  mkdir -p ${LOCAL_CLONE_DIR}
-  cd ${LOCAL_CLONE_DIR}
-  git clone ${GIT_REPO_URL}
-  cd ${BEAM_ROOT_DIR}
-  git checkout ${RELEASE_BRANCH}
-  RELEASE_COMMIT=$(git rev-parse --verify ${RELEASE_BRANCH})
-
-  echo "-------------Building Java Artifacts with Gradle-------------"
-  git config credential.helper store
-
-  ./gradlew release -Prelease.newVersion=${RELEASE}-SNAPSHOT \
-                -Prelease.releaseVersion=${RELEASE}-RC${RC_NUM} \
-                -Prelease.useAutomaticVersion=true --info --no-daemon
-
-  echo "Please make sure gradle release succeed: "
-  echo "1. release code has been pushed to github repo."
-  echo "2. new rc tag has created in github."
-
-  echo "-------------Staging Java Artifacts into Maven---------------"
-  gpg --local-user ${SIGNING_KEY} --output /dev/null --sign ~/.bashrc
-  ./gradlew publish -Psigning.gnupg.keyName=${SIGNING_KEY} -PisRelease --no-daemon
-  echo "Please review all artifacts in staging URL. e.g. https://repository.apache.org/content/repositories/orgapachebeam-NNNN/"
-  rm -rf ~/${LOCAL_CLONE_DIR}
-fi
-
-echo "[Current Step]: Stage source release on dist.apache.org"
-echo "Do you want to proceed? [y|N]"
-read confirmation
-if [[ $confirmation = "y" ]]; then
+if [[ -z "$NO_SOURCE" ]]; then
   echo "=========Staging Source Release on dist.apache.org==========="
-  cd ~
-  if [[ -d ${LOCAL_JAVA_STAGING_DIR} ]]; then
-    rm -rf ${LOCAL_JAVA_STAGING_DIR}
-  fi
-  mkdir -p ${LOCAL_JAVA_STAGING_DIR}
-  cd ${LOCAL_JAVA_STAGING_DIR}
-  svn co ${ROOT_SVN_URL}
-  mkdir -p beam/${RELEASE}
-  cd beam/${RELEASE}
+  TEMP_SVN_DIR=$(mktemp -d beam-release-svn-XXXXXXXX)
+  SVN_STAGING_DIR="${TEMP_SVN_DIR}/beam/${RELEASE_VERSION}"
+
+  svn checkout "${ROOT_SVN_URL}" "${TEMP_SVN_DIR}"
+  mkdir -p "$SVN_STAGING_DIR"
 
   echo "----------------Downloading Source Release-------------------"
-  SOURCE_RELEASE_ZIP="apache-beam-${RELEASE}-source-release.zip"
+  SOURCE_RELEASE_ZIP="apache-beam-${RELEASE_VERSION}-source-release.zip"
   # Check whether there is an existing dist dir
-  if (svn ls "${SOURCE_RELEASE_ZIP}"); then
+  if (svn ls "${SVN_STAGING_DIR}/${SOURCE_RELEASE_ZIP}"); then
     echo "Removing existing ${SOURCE_RELEASE_ZIP}."
-    svn delete "${SOURCE_RELEASE_ZIP}"
+    svn delete "${SVN_STAGING_DIR}/${SOURCE_RELEASE_ZIP}"
   fi
 
   echo "Downloading: ${GIT_BEAM_ARCHIVE}/release-${RELEASE}.zip"
-  wget ${GIT_BEAM_ARCHIVE}/release-${RELEASE}.zip  -O "${SOURCE_RELEASE_ZIP}"
+  wget ${GIT_BEAM_ARCHIVE}/release-${RELEASE_VERSION}.zip  -O "${SVN_STAGING_URL}/${SOURCE_RELEASE_ZIP}"
 
   echo "----Signing Source Release ${SOURCE_RELEASE_ZIP}-----"
+  (cd ${SVN_STAGING_DIR}
   gpg --local-user ${SIGNING_KEY} --armor --detach-sig "${SOURCE_RELEASE_ZIP}"
 
   echo "----Creating Hash Value for ${SOURCE_RELEASE_ZIP}----"
@@ -145,35 +141,34 @@ if [[ $confirmation = "y" ]]; then
 
   # The svn commit is interactive already and can be aborted by deleted the commit msg
   svn add --force .
-  svn commit --no-auth-cache
-  rm -rf ~/${LOCAL_JAVA_STAGING_DIR}
+  svn commit --no-auth-cache -m "Stage apache-beam-${RELEASE_VERSION}-${RC_NUM}")
 fi
 
-echo "[Current Step]: Stage python binaries"
-echo "Do you want to proceed? [y|N]"
-read confirmation
-if [[ $confirmation = "y" ]]; then
-  echo "============Staging Python Binaries on dist.apache.org========="
-  cd ~
-  if [[ -d ${LOCAL_PYTHON_STAGING_DIR} ]]; then
-    rm -rf ${LOCAL_PYTHON_STAGING_DIR}
-  fi
-  mkdir -p ${LOCAL_PYTHON_STAGING_DIR}
-  cd ${LOCAL_PYTHON_STAGING_DIR}
+if [[ -z "$NO_JAVA" ]]; then
+  echo "============Building and Staging Java Artifacts============="
+  echo "------------Building Java Artifacts with Gradle-------------"
+  git config credential.helper store
 
-  echo '-------------------Cloning Beam Release Branch-----------------'
-  git clone ${GIT_REPO_URL}
-  cd ${BEAM_ROOT_DIR}
-  git checkout ${RELEASE_BRANCH}
+  echo "-------------Staging Java Artifacts into Maven---------------"
+  # Get gpg agent to have the needed key
+  gpg --local-user ${SIGNING_KEY} --output /dev/null --sign ~/.bashrc
+  ./gradlew publish -Psigning.gnupg.keyName=${SIGNING_KEY} -PisRelease --no-daemon
+  echo "You now must log in to Nexus at https://repository.apache.org and 'close' the staging repo named orgapachebeam-NNNN."
+  echo "Then please review all artifacts in staging URL. e.g. https://repository.apache.org/content/repositories/orgapachebeam-NNNN/"
+fi
 
+if [[ -z "$NO_PYTHON" ]]; then
+  echo "============Staging Python Artifacts on dist.apache.org========="
   echo '-------------------Generating Python Artifacts-----------------'
-  cd sdks/python
+  (cd sdks/python
   virtualenv ${LOCAL_PYTHON_VIRTUALENV}
   source ${LOCAL_PYTHON_VIRTUALENV}/bin/activate
   python setup.py sdist --format=zip
   cd dist
 
-  svn co https://dist.apache.org/repos/dist/dev/beam
+  TEMP_SVN_DIR=$(mktemp -d beam-release-svn-XXXXXXXX)
+  svn checkout "${ROOT_SVN_URL}" "${TEMP_SVN_DIR}"
+  (cd $TEMP_SVN_DIR
   mkdir -p beam/${RELEASE}/${PYTHON_ARTIFACTS_DIR}
   cp apache-beam-${RELEASE}.zip beam/${RELEASE}/${PYTHON_ARTIFACTS_DIR}/apache-beam-${RELEASE}.zip
   cd beam/${RELEASE}/${PYTHON_ARTIFACTS_DIR}
@@ -203,6 +198,8 @@ echo "Do you want to proceed? [y|N]"
 read confirmation
 if [[ $confirmation = "y" ]]; then
   echo "==============Creating PR for Updating Website==============="
+USER_WEBSITE_URL=git@github.com:${DOC_PR_USER}/beam-site
+
   cd ~
   if [[ -d ${LOCAL_WEBSITE_UPDATE_DIR} ]]; then
     rm -rf ${LOCAL_WEBSITE_UPDATE_DIR}
@@ -259,7 +256,6 @@ if [[ $confirmation = "y" ]]; then
       wget https://github.com/github/hub/releases/download/v${HUB_VERSION}/${HUB_ARTIFACTS_NAME}.tgz
       tar zvxvf ${HUB_ARTIFACTS_NAME}.tgz
       sudo ./${HUB_ARTIFACTS_NAME}/install
-      echo "eval "$(hub alias -s)"" >> ~/.bashrc
       rm -rf ${HUB_ARTIFACTS_NAME}*
     fi
   fi
