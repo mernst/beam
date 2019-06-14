@@ -56,6 +56,13 @@ import org.apache.beam.vendor.guava.v20_0.com.google.common.io.CountingOutputStr
  * @param <T> the type of values being encoded and decoded
  */
 public abstract class Coder<T> implements Serializable {
+
+  /** Coders must have a defined equals. */
+  public abstract boolean equals(Object other);
+
+  /** Coders must have a defined hashCode. */
+  public abstract int hashCode();
+
   /**
    * The context in which encoding or decoding is being done.
    *
