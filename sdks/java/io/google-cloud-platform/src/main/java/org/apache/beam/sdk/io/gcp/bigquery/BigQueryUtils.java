@@ -79,7 +79,7 @@ public class BigQueryUtils {
 
     public static Builder builder() {
       return new AutoValue_BigQueryUtils_ConversionOptions.Builder()
-          .setTruncateTimestamps(TruncateTimestamps.REJECT);
+          .setTruncateTimestamps(TruncateTimestamps.TRUNCATE);
     }
 
     /** Builder for {@link ConversionOptions}. */

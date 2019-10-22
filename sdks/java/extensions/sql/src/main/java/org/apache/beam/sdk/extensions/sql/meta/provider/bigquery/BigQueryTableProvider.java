@@ -56,7 +56,7 @@ public class BigQueryTableProvider extends InMemoryMetaTableProvider {
         table,
         ConversionOptions.builder()
             .setTruncateTimestamps(
-                firstNonNull(table.getProperties().getBoolean("truncateTimestamps"), false)
+                firstNonNull(table.getProperties().getBoolean("truncateTimestamps"), true)
                     ? TruncateTimestamps.TRUNCATE
                     : TruncateTimestamps.REJECT)
             .build());

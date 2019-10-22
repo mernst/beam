@@ -60,7 +60,7 @@ public class BigQueryTestTableProvider extends BigQueryTableProvider {
             table,
             BigQueryUtils.ConversionOptions.builder()
                 .setTruncateTimestamps(
-                    firstNonNull(table.getProperties().getBoolean("truncateTimestamps"), false)
+                    firstNonNull(table.getProperties().getBoolean("truncateTimestamps"), true)
                         ? BigQueryUtils.ConversionOptions.TruncateTimestamps.TRUNCATE
                         : BigQueryUtils.ConversionOptions.TruncateTimestamps.REJECT)
                 .build());

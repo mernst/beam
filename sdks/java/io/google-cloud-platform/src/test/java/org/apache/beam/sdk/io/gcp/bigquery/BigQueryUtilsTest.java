@@ -394,6 +394,9 @@ public class BigQueryUtilsTest {
     assertThat(row, hasEntry("binary", null));
   }
 
+  private static final BigQueryUtils.ConversionOptions DEFAULT_OPTIONS =
+      BigQueryUtils.ConversionOptions.builder().build();
+
   private static final BigQueryUtils.ConversionOptions TRUNCATE_OPTIONS =
       BigQueryUtils.ConversionOptions.builder()
           .setTruncateTimestamps(TruncateTimestamps.TRUNCATE)
@@ -436,6 +439,19 @@ public class BigQueryUtilsTest {
             millis * 1000 + 123,
             TRUNCATE_OPTIONS),
         equalTo(new Instant(millis)));
+  }
+
+  @Test
+  public void testSubMilliPrecisionTruncatedByDefault() {
+    long micros = 123456789L;
+    assertThat(
+        BigQueryUtils.convertAvroFormat(
+            Schema.Field.of("dummy", Schema.FieldType.DATETIME).getType(), micros, DEFAULT_OPTIONS),
+        equalTo(
+            BigQueryUtils.convertAvroFormat(
+                Schema.Field.of("dummy", Schema.FieldType.DATETIME).getType(),
+                micros,
+                TRUNCATE_OPTIONS)));
   }
 
   @Test
