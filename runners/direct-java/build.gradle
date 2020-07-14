@@ -30,7 +30,6 @@ def dependOnProjects = [":runners:core-construction-java",
 
 applyJavaNature(
         automaticModuleName: 'org.apache.beam.runners.direct',
-        enableChecker: false,
         shadowClosure: {
           dependencies {
             dependOnProjects.each {
