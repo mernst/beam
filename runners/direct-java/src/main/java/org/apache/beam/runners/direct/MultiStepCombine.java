@@ -222,7 +222,7 @@ class MultiStepCombine<
     return input
         .apply(
             ParDo.of(
-                new CombineInputs<>(
+                CombineInputs.of(
                     combineFn,
                     input.getWindowingStrategy().getTimestampCombiner(),
                     inputCoder.getKeyCoder())))
@@ -255,6 +255,17 @@ class MultiStepCombine<
       this.combineFn = combineFn;
       this.timestampCombiner = timestampCombiner;
       this.keyCoder = keyCoder;
+    }
+
+    public static <
+            K extends @Nullable Object,
+            InputT extends @Nullable Object,
+            AccumT extends @Nullable Object>
+        CombineInputs<K, InputT, AccumT> of(
+            CombineFn<InputT, AccumT, ?> combineFn,
+            TimestampCombiner timestampCombiner,
+            Coder<K> coder) {
+      return new CombineInputs<>(combineFn, timestampCombiner, coder);
     }
 
     @StartBundle
