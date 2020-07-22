@@ -47,7 +47,7 @@ import org.testcontainers.containers.Network;
 public class BaseClickHouseTest {
 
   public static Network network;
-  public static GenericContainer zookeeper;
+  public static GenericContainer<?> zookeeper;
   public static ClickHouseContainer clickHouse;
 
   // yandex/clickhouse-server:19.1.6

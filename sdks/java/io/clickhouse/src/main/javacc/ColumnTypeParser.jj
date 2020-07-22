@@ -41,7 +41,7 @@ import static org.apache.beam.sdk.io.clickhouse.TableSchema.TypeName;
  *
  * <p>Used to parse output of "DESCRIBE TABLE" and get {@link TableSchema} in ClickHouse.
  */
-@SuppressWarnings({"unchecked", "static"})
+@SuppressWarnings({"rawtypes", "unchecked", "static"})
 public class ColumnTypeParser {
 
     public ColumnType parse() throws ParseException {
