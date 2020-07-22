@@ -39,6 +39,7 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.Preconditions;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.Iterators;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.primitives.UnsignedBytes;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,10 +120,15 @@ class NativeFileSorter {
     InputStream inputStream = new BufferedInputStream(new FileInputStream(dataFile));
     try {
       final List<KV<byte[], byte[]>> tempList = new ArrayList<>();
-      KV<byte[], byte[]> kv = KV.of(null, null);
+      @Nullable KV<? extends byte @Nullable [], ? extends byte @Nullable []> kv = KV.of(null, null);
       while (kv != null) {
         long currentBlockSize = 0;
-        while ((currentBlockSize < blockSize) && (kv = readKeyValue(inputStream)) != null) {
+        while (currentBlockSize < blockSize) {
+          kv = readKeyValue(inputStream);
+          if (kv == null) {
+            break;
+          }
+
           // as long as you have enough memory
           tempList.add(kv);
           currentBlockSize += estimateSizeOf(kv);
@@ -203,7 +209,7 @@ class NativeFileSorter {
   }
 
   /** Reads the next key-value pair from a file. */
-  private KV<byte[], byte[]> readKeyValue(InputStream inputStream) throws IOException {
+  private @Nullable KV<byte[], byte[]> readKeyValue(InputStream inputStream) throws IOException {
     try {
       final byte[] keyBytes = CODER.decode(inputStream);
       final byte[] valueBytes = CODER.decode(inputStream);
