@@ -29,6 +29,8 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import org.apache.beam.sdk.values.KV;
+import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.Supplier;
+import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.Suppliers;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -37,6 +39,8 @@ import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.apache.hadoop.io.SequenceFile.Sorter.RawKeyValueIterator;
 import org.apache.hadoop.io.SequenceFile.Writer;
 import org.apache.hadoop.mapred.JobConf;
+import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 /** Does an external sort of the provided values using Hadoop's {@link SequenceFile}. */
 class HadoopExternalSorter extends ExternalSorter {
@@ -45,10 +49,12 @@ class HadoopExternalSorter extends ExternalSorter {
   private boolean sortCalled = false;
 
   /** SequenceFile Writer for writing all input data to a file. */
-  private Writer writer;
+  private @MonotonicNonNull Writer writer = null;
 
   /** Sorter used to sort the input file. */
-  private SequenceFile.Sorter sorter;
+  private SequenceFile.@MonotonicNonNull Sorter sorter = null;
+
+  private JobConf conf;
 
   /** Temporary directory for input and intermediate files. */
   private Path tempDir;
@@ -66,44 +72,34 @@ class HadoopExternalSorter extends ExternalSorter {
   @Override
   public void add(KV<byte[], byte[]> record) throws IOException {
     checkState(!sortCalled, "Records can only be added before sort()");
-
-    initHadoopSorter();
-
     BytesWritable key = new BytesWritable(record.getKey());
     BytesWritable value = new BytesWritable(record.getValue());
-
-    writer.append(key, value);
+    getWriter().append(key, value);
   }
 
   @Override
   public Iterable<KV<byte[], byte[]>> sort() throws IOException {
     checkState(!sortCalled, "sort() can only be called once.");
     sortCalled = true;
-
-    initHadoopSorter();
-
-    writer.close();
-
+    getWriter().close();
     return new SortedRecordsIterable();
   }
 
   private HadoopExternalSorter(Options options) {
     super(options);
+    tempDir = new Path(options.getTempLocation(), "tmp" + UUID.randomUUID().toString());
+    paths = new Path[] {new Path(tempDir, "test.seq")};
+    conf = new JobConf();
+    // Sets directory for intermediate files created during merge of merge sort
+    conf.set("io.seqfile.local.dir", tempDir.toUri().getPath());
   }
 
   /**
-   * Initializes the hadoop sorter. Does some local file system setup, and is somewhat expensive
+   * Initializes the writer. Does some local file system setup, and is somewhat expensive
    * (~20 ms on local machine). Only executed when necessary.
    */
-  private void initHadoopSorter() throws IOException {
-    if (!initialized) {
-      tempDir = new Path(options.getTempLocation(), "tmp" + UUID.randomUUID().toString());
-      paths = new Path[] {new Path(tempDir, "test.seq")};
-
-      JobConf conf = new JobConf();
-      // Sets directory for intermediate files created during merge of merge sort
-      conf.set("io.seqfile.local.dir", tempDir.toUri().getPath());
-
+  private Writer getWriter() throws IOException {
+    if (writer == null) {
       writer =
           SequenceFile.createWriter(
               conf,
@@ -116,14 +112,20 @@ class HadoopExternalSorter extends ExternalSorter {
       // Directory has to exist for Hadoop to recognize it as deletable on exit
       fs.mkdirs(tempDir);
       fs.deleteOnExit(tempDir);
+    }
+    return writer;
+  }
 
+  /** Sorter used to sort the input file. */
+  private SequenceFile.Sorter getSorter() throws IOException {
+    if (sorter == null) {
+      FileSystem fs = FileSystem.getLocal(conf);
       sorter =
           new SequenceFile.Sorter(
               fs, new BytesWritable.Comparator(), BytesWritable.class, BytesWritable.class, conf);
       sorter.setMemory(options.getMemoryMB() * 1024 * 1024);
-
-      initialized = true;
     }
+    return sorter;
   }
 
   /** An {@link Iterable} producing the iterators over sorted data. */
@@ -144,7 +146,7 @@ class HadoopExternalSorter extends ExternalSorter {
 
     SortedRecordsIterator() {
       try {
-        this.iterator = sorter.sortAndIterate(paths, tempDir, false);
+        this.iterator = getSorter().sortAndIterate(paths, tempDir, false);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
