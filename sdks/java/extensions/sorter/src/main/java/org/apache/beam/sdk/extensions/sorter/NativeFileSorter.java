@@ -193,7 +193,7 @@ class NativeFileSorter {
       @Override
       public KV<byte[], byte[]> next() {
         if (nextKv == null) {
-          throw new NoSuchElementException("No more keys in file");
+          throw new NoSuchElementException();
         }
         KV<byte[], byte[]> r = nextKv;
         nextKv = readKeyValueOrFail(inputStream);

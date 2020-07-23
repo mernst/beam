@@ -23,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -41,6 +42,8 @@ import org.apache.hadoop.io.SequenceFile.Writer;
 import org.apache.hadoop.mapred.JobConf;
 import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /** Does an external sort of the provided values using Hadoop's {@link SequenceFile}. */
 class HadoopExternalSorter extends ExternalSorter {
@@ -95,8 +98,8 @@ class HadoopExternalSorter extends ExternalSorter {
   }
 
   /**
-   * Initializes the writer. Does some local file system setup, and is somewhat expensive
-   * (~20 ms on local machine). Only executed when necessary.
+   * Initializes the writer. Does some local file system setup, and is somewhat expensive (~20 ms on
+   * local machine). Only executed when necessary.
    */
   private Writer getWriter() throws IOException {
     if (writer == null) {
@@ -130,7 +133,6 @@ class HadoopExternalSorter extends ExternalSorter {
 
   /** An {@link Iterable} producing the iterators over sorted data. */
   private class SortedRecordsIterable implements Iterable<KV<byte[], byte[]>> {
-    @Nonnull
     @Override
     public Iterator<KV<byte[], byte[]>> iterator() {
       return new SortedRecordsIterator();
@@ -142,7 +144,7 @@ class HadoopExternalSorter extends ExternalSorter {
     private RawKeyValueIterator iterator;
 
     /** Next {@link KV} to return from {@link #next()}. */
-    private KV<byte[], byte[]> nextKV;
+    private @Nullable KV<byte[], byte[]> nextKV;
 
     SortedRecordsIterator() {
       try {
@@ -150,9 +152,7 @@ class HadoopExternalSorter extends ExternalSorter {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-
-      nextKV = KV.of(null, null); // A dummy value that will be overwritten by next().
-      next();
+      nextKV = readKeyValueOrFail(iterator);
     }
 
     @Override
@@ -166,36 +166,40 @@ class HadoopExternalSorter extends ExternalSorter {
         throw new NoSuchElementException();
       }
 
-      KV<byte[], byte[]> current = nextKV;
+      KV<byte[], byte[]> r = nextKV;
+      nextKV = readKeyValueOrFail();
+      return r;
+    }
+  }
 
-      try {
-        if (iterator.next()) {
-          // Parse key from DataOutputBuffer.
-          ByteArrayInputStream keyStream = new ByteArrayInputStream(iterator.getKey().getData());
-          BytesWritable key = new BytesWritable();
-          key.readFields(new DataInputStream(keyStream));
+  private @Nullable KV<byte[], byte[]> readKeyValueOrFail(RawKeyValueIterator iterator) {
+    try {
+      return readKeyValue(iterator);
+    } catch (EOFException e) {
+      return null;
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
 
-          // Parse value from ValueBytes.
-          ByteArrayOutputStream valOutStream = new ByteArrayOutputStream();
-          iterator.getValue().writeUncompressedBytes(new DataOutputStream(valOutStream));
-          ByteArrayInputStream valInStream = new ByteArrayInputStream(valOutStream.toByteArray());
-          BytesWritable value = new BytesWritable();
-          value.readFields(new DataInputStream(valInStream));
-
-          nextKV = KV.of(key.copyBytes(), value.copyBytes());
-        } else {
-          nextKV = null;
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-
-      return current;
+  private @Nullable KV<byte[], byte[]> readKeyValue(RawKeyValueIterator iterator)
+      throws IOException {
+    if (!iterator.next()) {
+      return null;
     }
 
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException("Iterator does not support remove");
-    }
+    // Parse key from DataOutputBuffer.
+    ByteArrayInputStream keyStream = new ByteArrayInputStream(iterator.getKey().getData());
+    BytesWritable key = new BytesWritable();
+    key.readFields(new DataInputStream(keyStream));
+
+    // Parse value from ValueBytes.
+    ByteArrayOutputStream valOutStream = new ByteArrayOutputStream();
+    iterator.getValue().writeUncompressedBytes(new DataOutputStream(valOutStream));
+    ByteArrayInputStream valInStream = new ByteArrayInputStream(valOutStream.toByteArray());
+    BytesWritable value = new BytesWritable();
+    value.readFields(new DataInputStream(valInStream));
+
+    return KV.of(key.copyBytes(), value.copyBytes());
   }
 }
