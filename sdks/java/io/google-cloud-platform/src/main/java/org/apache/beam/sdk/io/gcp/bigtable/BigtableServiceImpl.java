@@ -17,6 +17,8 @@
  */
 package org.apache.beam.sdk.io.gcp.bigtable;
 
+import static org.apache.beam.sdk.util.Preconditions.checkArgumentNotNull;
+import static org.apache.beam.sdk.util.Preconditions.checkStateNotNull;
 import static org.apache.beam.vendor.guava.v26_0_jre.com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import com.google.bigtable.admin.v2.GetTableRequest;
@@ -25,6 +27,7 @@ import com.google.bigtable.v2.MutateRowsRequest;
 import com.google.bigtable.v2.Mutation;
 import com.google.bigtable.v2.ReadRowsRequest;
 import com.google.bigtable.v2.Row;
+import com.google.bigtable.v2.RowFilter;
 import com.google.bigtable.v2.RowRange;
 import com.google.bigtable.v2.RowSet;
 import com.google.bigtable.v2.SampleRowKeysRequest;
@@ -50,6 +53,7 @@ import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.MoreObjects
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.io.Closer;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.util.concurrent.FutureCallback;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.util.concurrent.Futures;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,10 +105,10 @@ class BigtableServiceImpl implements BigtableService {
 
   @VisibleForTesting
   static class BigtableReaderImpl implements Reader {
-    private BigtableSession session;
+    private @Nullable BigtableSession session;
     private final BigtableSource source;
-    private ResultScanner<Row> results;
-    private Row currentRow;
+    private @Nullable ResultScanner<Row> results;
+    private @Nullable Row currentRow;
 
     @VisibleForTesting
     BigtableReaderImpl(BigtableSession session, BigtableSource source) {
@@ -114,6 +118,7 @@ class BigtableServiceImpl implements BigtableService {
 
     @Override
     public boolean start() throws IOException {
+      final BigtableSession session = checkStateNotNull(this.session);
       RowSet.Builder rowSetBuilder = RowSet.newBuilder();
       for (ByteKeyRange sourceRange : source.getRanges()) {
         rowSetBuilder =
@@ -129,8 +134,9 @@ class BigtableServiceImpl implements BigtableService {
 
       ReadRowsRequest.Builder requestB =
           ReadRowsRequest.newBuilder().setRows(rowSet).setTableName(tableNameSr);
-      if (source.getRowFilter() != null) {
-        requestB.setFilter(source.getRowFilter());
+      final RowFilter rowFilter = source.getRowFilter();
+      if (rowFilter != null) {
+        requestB.setFilter(rowFilter);
       }
       results = session.getDataClient().readRows(requestB.build());
       return advance();
@@ -138,6 +144,7 @@ class BigtableServiceImpl implements BigtableService {
 
     @Override
     public boolean advance() throws IOException {
+      final ResultScanner<Row> results = checkStateNotNull(this.results);
       currentRow = results.next();
       return currentRow != null;
     }
@@ -151,6 +158,7 @@ class BigtableServiceImpl implements BigtableService {
         // Only possible when previously closed, so we know that results is also null.
         return;
       }
+      final BigtableSession session = this.session;
 
       // Session does not implement Closeable -- it's AutoCloseable. So we can't register it with
       // the Closer, but we can use the Closer to simplify the error handling.
@@ -162,7 +170,7 @@ class BigtableServiceImpl implements BigtableService {
 
         session.close();
       } finally {
-        session = null;
+        this.session = null;
       }
     }
 
@@ -177,8 +185,8 @@ class BigtableServiceImpl implements BigtableService {
 
   @VisibleForTesting
   static class BigtableWriterImpl implements Writer {
-    private BigtableSession session;
-    private BulkMutation bulkMutation;
+    private @Nullable BigtableSession session;
+    private @Nullable BulkMutation bulkMutation;
 
     BigtableWriterImpl(BigtableSession session, BigtableTableName tableName) {
       this.session = session;
@@ -220,8 +228,10 @@ class BigtableServiceImpl implements BigtableService {
     }
 
     @Override
-    public CompletionStage<MutateRowResponse> writeRecord(KV<ByteString, Iterable<Mutation>> record)
-        throws IOException {
+    public CompletionStage<MutateRowResponse> writeRecord(
+        KV<ByteString, Iterable<Mutation>> record) {
+      final BulkMutation bulkMutation = checkStateNotNull(this.bulkMutation);
+
       MutateRowsRequest.Entry request =
           MutateRowsRequest.Entry.newBuilder()
               .setRowKey(record.getKey())
@@ -233,8 +243,8 @@ class BigtableServiceImpl implements BigtableService {
           new VendoredListenableFutureAdapter<>(bulkMutation.add(request)),
           new FutureCallback<MutateRowResponse>() {
             @Override
-            public void onSuccess(MutateRowResponse mutateRowResponse) {
-              result.complete(mutateRowResponse);
+            public void onSuccess(@Nullable MutateRowResponse mutateRowResponse) {
+              result.complete(checkArgumentNotNull(mutateRowResponse));
             }
 
             @Override

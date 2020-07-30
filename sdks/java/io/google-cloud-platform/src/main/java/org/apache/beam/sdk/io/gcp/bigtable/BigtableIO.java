@@ -18,8 +18,9 @@
 package org.apache.beam.sdk.io.gcp.bigtable;
 
 import static org.apache.beam.sdk.options.ValueProvider.StaticValueProvider;
+import static org.apache.beam.sdk.util.Preconditions.checkArgumentNotNull;
+import static org.apache.beam.sdk.util.Preconditions.checkStateNotNull;
 import static org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.Preconditions.checkArgument;
-import static org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.Preconditions.checkState;
 
 import com.google.auto.value.AutoValue;
@@ -64,6 +65,8 @@ import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.Immutabl
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.Lists;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.Maps;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.RequiresNonNull;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -774,10 +777,10 @@ public class BigtableIO {
                 .openForWriting(config.getTableId().get());
       }
       recordsWritten = 0;
-      this.seenWindows = Maps.newHashMapWithExpectedSize(1);
     }
 
     @ProcessElement
+    @RequiresNonNull("bigtableWriter")
     public void processElement(ProcessContext c, BoundedWindow window) throws Exception {
       checkForFailures();
       bigtableWriter
@@ -793,6 +796,7 @@ public class BigtableIO {
     }
 
     @FinishBundle
+    @RequiresNonNull("bigtableWriter")
     public void finishBundle(FinishBundleContext c) throws Exception {
       bigtableWriter.flush();
       checkForFailures();
@@ -821,12 +825,13 @@ public class BigtableIO {
 
     ///////////////////////////////////////////////////////////////////////////////
     private final BigtableConfig config;
-    private BigtableService.Writer bigtableWriter;
+    private BigtableService.@Nullable Writer bigtableWriter = null;
     private long recordsWritten;
     private final ConcurrentLinkedQueue<BigtableWriteException> failures;
-    private Map<BoundedWindow, Long> seenWindows;
+    private Map<BoundedWindow, Long> seenWindows = Maps.newHashMapWithExpectedSize(1);
 
     /** If any write has asynchronously failed, fail the bundle with a useful error. */
+    @SideEffectFree
     private void checkForFailures() throws IOException {
       // Note that this function is never called by multiple threads and is the only place that
       // we remove from failures, so this code is safe.
@@ -840,8 +845,9 @@ public class BigtableIO {
       for (; i < 10 && !failures.isEmpty(); ++i) {
         BigtableWriteException exc = failures.remove();
         logEntry.append("\n").append(exc.getMessage());
-        if (exc.getCause() != null) {
-          logEntry.append(": ").append(exc.getCause().getMessage());
+        final Throwable cause = exc.getCause();
+        if (cause != null) {
+          logEntry.append(": ").append(cause.getMessage());
         }
         suppressed.add(exc);
       }
@@ -1183,9 +1189,10 @@ public class BigtableIO {
 
       builder.add(DisplayData.item("tableId", config.getTableId()).withLabel("Table ID"));
 
-      if (getRowFilter() != null) {
+      final RowFilter rowFilter = getRowFilter();
+      if (rowFilter != null) {
         builder.add(
-            DisplayData.item("rowFilter", getRowFilter().toString()).withLabel("Table Row Filter"));
+            DisplayData.item("rowFilter", rowFilter.toString()).withLabel("Table Row Filter"));
       }
     }
 
@@ -1230,7 +1237,11 @@ public class BigtableIO {
     }
 
     public List<ByteKeyRange> getRanges() {
-      return readOptions.getKeyRanges().get();
+      final @Nullable ValueProvider<List<ByteKeyRange>> keyRanges = readOptions.getKeyRanges();
+      if (keyRanges == null) {
+        throw new RuntimeException("key ranges null");
+      }
+      return keyRanges.get();
     }
 
     public @Nullable RowFilter getRowFilter() {
@@ -1248,7 +1259,7 @@ public class BigtableIO {
     // inside a synchronized block (or constructor, which is the same).
     private BigtableSource source;
     private BigtableService service;
-    private BigtableService.Reader reader;
+    private BigtableService.@Nullable Reader reader;
     private final ByteKeyRangeTracker rangeTracker;
     private long recordsReturned;
 
@@ -1280,6 +1291,7 @@ public class BigtableIO {
 
     @Override
     public boolean advance() throws IOException {
+      final BigtableService.Reader reader = checkStateNotNull(this.reader);
       boolean hasRecord =
           (reader.advance()
                   && rangeTracker.tryReturnRecordAt(
@@ -1293,6 +1305,7 @@ public class BigtableIO {
 
     @Override
     public Row getCurrent() throws NoSuchElementException {
+      final BigtableService.Reader reader = checkStateNotNull(this.reader);
       return reader.getCurrentRow();
     }
 
@@ -1361,7 +1374,8 @@ public class BigtableIO {
 
   static void validateTableExists(BigtableConfig config, PipelineOptions options) {
     if (config.getValidate() && config.isDataAccessible()) {
-      String tableId = checkNotNull(config.getTableId().get());
+      ValueProvider<String> tableIdProvider = checkArgumentNotNull(config.getTableId());
+      String tableId = checkArgumentNotNull(tableIdProvider.get());
       try {
         checkArgument(
             config.getBigtableService(options).tableExists(tableId),

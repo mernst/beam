@@ -157,7 +157,7 @@ public abstract class PTransform<InputT extends PInput, OutputT extends POutput>
    *
    * <p>By default, does nothing.
    */
-  public void validate(@Nullable PipelineOptions options) {}
+  public void validate(PipelineOptions options) {}
 
   /**
    * Returns all {@link PValue PValues} that are consumed as inputs to this {@link PTransform} that

@@ -31,19 +31,23 @@ import org.apache.beam.sdk.transforms.display.DisplayData;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.annotations.VisibleForTesting;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.MoreObjects;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.dataflow.qual.Pure;
 
 /** Configuration for a Cloud Bigtable client. */
 @AutoValue
 abstract class BigtableConfig implements Serializable {
 
   /** Returns the project id being written to. */
-  abstract @Nullable ValueProvider<String> getProjectId();
+  @Pure
+  abstract ValueProvider<String> getProjectId();
 
   /** Returns the instance id being written to. */
+  @Pure
   abstract @Nullable ValueProvider<String> getInstanceId();
 
   /** Returns the table being read from. */
-  abstract @Nullable ValueProvider<String> getTableId();
+  @Pure
+  abstract ValueProvider<String> getTableId();
 
   /**
    * Returns the Google Cloud Bigtable instance being written to, and other parameters.
@@ -51,18 +55,23 @@ abstract class BigtableConfig implements Serializable {
    * @deprecated will be replaced by bigtable options configurator.
    */
   @Deprecated
+  @Pure
   abstract @Nullable BigtableOptions getBigtableOptions();
 
   /** Configurator of the effective Bigtable Options. */
+  @Pure
   abstract @Nullable SerializableFunction<BigtableOptions.Builder, BigtableOptions.Builder>
       getBigtableOptionsConfigurator();
 
-  /** Weather validate that table exists before writing. */
+  /** Whether to validate that table exists before writing. */
+  @Pure
   abstract boolean getValidate();
 
   /** {@link BigtableService} used only for testing. */
+  @Pure
   abstract @Nullable BigtableService getBigtableService();
 
+  @Pure
   abstract Builder toBuilder();
 
   static BigtableConfig.Builder builder() {
@@ -132,12 +141,11 @@ abstract class BigtableConfig implements Serializable {
 
   void validate() {
     checkArgument(
-        getTableId() != null && (!getTableId().isAccessible() || !getTableId().get().isEmpty()),
+        !getTableId().isAccessible() || !getTableId().get().isEmpty(),
         "Could not obtain Bigtable table id");
 
     checkArgument(
-        (getProjectId() != null
-                && (!getProjectId().isAccessible() || !getProjectId().get().isEmpty()))
+        (!getProjectId().isAccessible() || !getProjectId().get().isEmpty())
             || (getBigtableOptions() != null
                 && getBigtableOptions().getProjectId() != null
                 && !getBigtableOptions().getProjectId().isEmpty()),

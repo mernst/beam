@@ -33,10 +33,18 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 @AutoValue
 abstract class BigtableReadOptions implements Serializable {
 
-  /** Returns the row filter to use. */
+  /**
+   * Returns the row filter to use.
+   *
+   * <p>If the {@link ValueProvider} is non-null, it must yield a non-null value.
+   */
   abstract @Nullable ValueProvider<RowFilter> getRowFilter();
 
-  /** Returns the key ranges to read. */
+  /**
+   * Returns the key ranges to read.
+   *
+   * <p>If the {@link ValueProvider} is non-null, it must yield a non-null value.
+   */
   abstract @Nullable ValueProvider<List<ByteKeyRange>> getKeyRanges();
 
   abstract Builder toBuilder();
@@ -48,9 +56,9 @@ abstract class BigtableReadOptions implements Serializable {
   @AutoValue.Builder
   abstract static class Builder {
 
-    abstract Builder setRowFilter(ValueProvider<RowFilter> rowFilter);
+    abstract Builder setRowFilter(@Nullable ValueProvider<RowFilter> rowFilter);
 
-    abstract Builder setKeyRanges(ValueProvider<List<ByteKeyRange>> keyRanges);
+    abstract Builder setKeyRanges(@Nullable ValueProvider<List<ByteKeyRange>> keyRanges);
 
     abstract BigtableReadOptions build();
   }

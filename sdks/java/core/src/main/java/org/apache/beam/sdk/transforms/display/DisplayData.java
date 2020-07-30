@@ -39,6 +39,7 @@ import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.Immutabl
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.Maps;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.Sets;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.joda.time.format.DateTimeFormatter;
@@ -916,6 +917,7 @@ public class DisplayData implements Serializable {
    * @throws ClassCastException if the value cannot be formatted as the given type.
    * @see Type#inferType(Object)
    */
+  @SideEffectFree
   public static <T> ItemSpec<T> item(String key, Type type, @Nullable T value) {
     checkNotNull(key, "key argument cannot be null");
     checkNotNull(type, "type argument cannot be null");
