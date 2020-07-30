@@ -434,4 +434,407 @@ public class Preconditions {
     }
     return obj;
   }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * @param reference an object reference
+   * @return the non-null reference that was validated
+   * @throws IllegalStateException if {@code reference} is null
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(@Nullable T reference) {
+    if (reference == null) {
+      throw new IllegalStateException();
+    }
+    return reference;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * @param reference an object reference
+   * @param errorMessage the exception message to use if the check fails; will be converted to a
+   *     string using {@link String#valueOf(Object)}
+   * @return the non-null reference that was validated
+   * @throws IllegalStateException if {@code reference} is null
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T reference, @Nullable Object errorMessage) {
+    if (reference == null) {
+      throw new IllegalStateException(String.valueOf(errorMessage));
+    }
+    return reference;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * @param reference an object reference
+   * @param errorMessageTemplate a template for the exception message should the check fail. The
+   *     message is formed by replacing each {@code %s} placeholder in the template with an
+   *     argument. These are matched by position - the first {@code %s} gets {@code
+   *     errorMessageArgs[0]}, etc. Unmatched arguments will be appended to the formatted message in
+   *     square braces. Unmatched placeholders will be left as-is.
+   * @param errorMessageArgs the arguments to be substituted into the message template. Arguments
+   *     are converted to strings using {@link String#valueOf(Object)}.
+   * @return the non-null reference that was validated
+   * @throws IllegalStateException if {@code reference} is null
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("reference")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T reference,
+      @Nullable String errorMessageTemplate,
+      @Nullable Object... errorMessageArgs) {
+    if (reference == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, errorMessageArgs));
+    }
+    return reference;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, char p1) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, int p1) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, long p1) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, @Nullable Object p1) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, char p1, char p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, char p1, int p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, char p1, long p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, char p1, @Nullable Object p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, int p1, char p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, int p1, int p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, int p1, long p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, int p1, @Nullable Object p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, long p1, char p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, long p1, int p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, long p1, long p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, long p1, @Nullable Object p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, @Nullable Object p1, char p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, @Nullable Object p1, int p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj, @Nullable String errorMessageTemplate, @Nullable Object p1, long p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj,
+      @Nullable String errorMessageTemplate,
+      @Nullable Object p1,
+      @Nullable Object p2) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj,
+      @Nullable String errorMessageTemplate,
+      @Nullable Object p1,
+      @Nullable Object p2,
+      @Nullable Object p3) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2, p3));
+    }
+    return obj;
+  }
+
+  /**
+   * Ensures that an object reference that is a field of the target object is not null.
+   *
+   * <p>See {@link #checkStateNotNull(Object, String, Object...)} for details.
+   */
+  @CanIgnoreReturnValue
+  @EnsuresNonNull("#1")
+  public static <T extends @NonNull Object> T checkStateNotNull(
+      @Nullable T obj,
+      @Nullable String errorMessageTemplate,
+      @Nullable Object p1,
+      @Nullable Object p2,
+      @Nullable Object p3,
+      @Nullable Object p4) {
+    if (obj == null) {
+      throw new IllegalStateException(lenientFormat(errorMessageTemplate, p1, p2, p3, p4));
+    }
+    return obj;
+  }
 }
