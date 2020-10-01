@@ -151,10 +151,6 @@ task sqlPreCommit() {
   dependsOn ":sdks:java:extensions:sql:buildDependents"
 }
 
-task javaPreCommitPortabilityApi() {
-  dependsOn ":runners:google-cloud-dataflow-java:worker:build"
-}
-
 task javaPostCommit() {
   dependsOn ":runners:google-cloud-dataflow-java:postCommit"
   dependsOn ":sdks:java:extensions:google-cloud-platform-core:postCommit"
