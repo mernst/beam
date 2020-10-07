@@ -1263,7 +1263,7 @@ public class PCollectionViews {
 
     @Override
     public Map<TupleTag<?>, PValue> expand() {
-      return Collections.singletonMap(tag, pCollection);
+      return Collections.emptyMap();
     }
   }
 
