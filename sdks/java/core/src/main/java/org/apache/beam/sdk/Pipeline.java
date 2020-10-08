@@ -583,7 +583,10 @@ public class Pipeline {
           checkState(
               replacementTag.equals(originalTag),
               "Replaced PCollectionViews must have the same tag. When replacing %s with %s, found tag change from %s to %s]",
-              original.getTransform(), replacement.getTransform(), originalTag, replacementTag);
+              original.getTransform(),
+              replacement.getTransform(),
+              originalTag,
+              replacementTag);
         }
       }
 
