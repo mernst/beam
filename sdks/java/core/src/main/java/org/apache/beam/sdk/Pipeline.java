@@ -48,9 +48,11 @@ import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.util.UserCodeException;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.values.PCollectionView;
 import org.apache.beam.sdk.values.PInput;
 import org.apache.beam.sdk.values.POutput;
 import org.apache.beam.sdk.values.PValue;
+import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.annotations.VisibleForTesting;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.Function;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.base.Joiner;
@@ -569,6 +571,22 @@ public class Pipeline {
       OutputT newOutput = replacement.getTransform().expand(originalInput);
       Map<PValue, ReplacementOutput> originalToReplacement =
           replacementFactory.mapOutputs(original.getOutputs(), newOutput);
+
+      // Replacing PCollectionView is not safe unless the tags match, since the tags may be captured
+      // as
+      // side inputs of other transforms
+      for (Map.Entry<PValue, ReplacementOutput> replacementOutput :
+          originalToReplacement.entrySet()) {
+        if (replacementOutput.getKey() instanceof PCollectionView) {
+          TupleTag<?> originalTag = replacementOutput.getValue().getOriginal().getTag();
+          TupleTag<?> replacementTag = replacementOutput.getValue().getOriginal().getTag();
+          checkState(
+              replacementTag.equals(originalTag),
+              "Replaced PCollectionViews must have the same tag. When replacing %s with %s, found tag change from %s to %s]",
+              original.getTransform(), replacement.getTransform(), originalTag, replacementTag);
+        }
+      }
+
       // Ensure the internal TransformHierarchy data structures are consistent.
       transforms.setOutput(newOutput);
       transforms.replaceOutputs(originalToReplacement);
@@ -594,8 +612,8 @@ public class Pipeline {
         case ERROR: // be very verbose here since it will just fail the execution
           throw new IllegalStateException(
               String.format(
-                      "Pipeline update will not be possible"
-                          + " because the following transforms do not have stable unique names: %s.",
+                      "Pipeline update will not be possible because the following transforms do"
+                          + " not have stable unique names: %s.",
                       Joiner.on(", ").join(transform(errors, new KeysExtractor())))
                   + "\n\n"
                   + "Conflicting instances:\n"
