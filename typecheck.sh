@@ -82,10 +82,15 @@ gradle_retry() {
       return 0
     fi
     # The failure looks like a transient network problem if it is HTTP status code 429 or 403, which
-    # Maven Central returns when it is throttling a client.  The pattern does not match Gradle's
-    # "Could not resolve", so a missing dependency or a Checker Framework crash is not retried.
+    # Maven Central returns when it is throttling a client, or a network error.  It also looks
+    # transient if Gradle searched the Gradle Plugin Portal in vain for an artifact ("Could not
+    # find" followed by a location under https://plugins.gradle.org/m2/):  the portal serves the
+    # Maven Central artifacts that buildSrc's plugins depend on, such as slf4j-api, and it sometimes
+    # fails to find them.  (A dependency that is genuinely missing from the portal is retried too,
+    # but only once.)  Otherwise, the pattern does not match Gradle's "Could not resolve" or "Could
+    # not find", so a missing dependency or a Checker Framework crash is not retried.
     if [ "$delay" -eq 0 ] \
-      || ! grep -q -E '(status|response) code:? (403|429|5[0-9][0-9])|HTTP Status:? (403|429|5[0-9][0-9])|Connect(ion)? timed out|Connection (reset|refused)|Read timed out|Network is unreachable|UnknownHostException|Temporary failure in name resolution|Premature end of Content-Length|Remote host terminated the handshake' "$log"; then
+      || ! grep -q -E '(status|response) code:? (403|429|5[0-9][0-9])|HTTP Status:? (403|429|5[0-9][0-9])|Connect(ion)? timed out|Connection (reset|refused)|Read timed out|Network is unreachable|UnknownHostException|Temporary failure in name resolution|Premature end of Content-Length|Remote host terminated the handshake|^[[:space:]]*- https://plugins\.gradle\.org/m2/' "$log"; then
       rm -f "$log"
       return "$status"
     fi
